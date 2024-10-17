@@ -10,3 +10,10 @@
     overflow-x: hidden;
     padding-bottom: 50px;
 }
+
+.allCars{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
