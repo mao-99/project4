@@ -1,26 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import styles from "../components/carCard.module.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
 import '../App.css';
 
 const EditCar = () => {
+  const color_codes = [
+    //... (your list of color codes)
+  ];
+
   const [baseCar, setBaseCar] = useState(null);
   const [customCar, setCustomCar] = useState({
     name: "",
     base_car_id: "",
     isconvertible: false,
-    color: "",
-    interior: "",
-    exterior: "",
-    roof: "",
+    color: "#FF6F61",
+    interior: "#FFFFFF",
+    exterior: "#FF6F61",
+    roof: "#000000",
     wheels: "",
-    price: 0
+    price: 1200
   });
-  const [price, setPrice] = useState(0)
+
   const params = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch base car data from the cars table
     const fetchBaseCar = async () => {
       try {
         const response = await fetch(`http://localhost:3001/api/cars/${params.id}`);
@@ -28,14 +33,14 @@ const EditCar = () => {
           throw new Error('Failed to fetch base car data');
         }
         let data = await response.json();
-        data = data[0]
-        console.log(data)
+        data = data[0];
+        console.log(data);
         setBaseCar(data);
         setCustomCar(prevCustomCar => ({
           ...prevCustomCar,
           base_car_id: data.id,
           name: `Custom ${data.make} ${data.model}`,
-          price: data.base_price
+          price: data.price
         }));
       } catch (error) {
         console.error('Error fetching base car data:', error);
@@ -47,10 +52,16 @@ const EditCar = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
     setCustomCar(prevCar => ({
       ...prevCar,
       [name]: value
     }));
+
+    // If the field being changed is the convertible field, call handlePrice
+    if (name === "convertible") {
+      handlePrice(value === "true"); // Convert to boolean
+    }
   };
 
   const handleCheckboxChange = (e) => {
@@ -61,9 +72,29 @@ const EditCar = () => {
     }));
   };
 
+  const handleColorChange = (e) => {
+    const { name, value } = e.target;
+    setCustomCar(prevCar => ({
+      ...prevCar,
+      [name]: value,
+    }));
+  };
+
+  // Function to handle price based on whether convertible is selected or not
+  const handlePrice = (isConvertible) => {
+    if (baseCar) {
+      const newPrice = baseCar.price + (isConvertible ? 20000 : 10000);
+      setCustomCar((prevCar) => ({
+        ...prevCar,
+        price: newPrice,
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log(customCar);
       const response = await fetch(`http://localhost:3001/api/customcars/`, {
         method: 'POST',
         headers: {
@@ -74,98 +105,94 @@ const EditCar = () => {
       if (!response.ok) {
         throw new Error('Failed to create custom car');
       }
-      // Handle successful creation (e.g., show a success message and redirect)
       alert('Custom car created successfully!');
-      navigate('/'); // Redirect to homepage
+      navigate('/');
     } catch (error) {
       console.error('Error creating custom car:', error);
       alert('Failed to create custom car. Please try again.');
     }
   };
 
-  if (!baseCar) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <div>
-      <h2>Customize Your {baseCar.make} {baseCar.model}</h2>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="name">Custom Name:</label>
-        <input type="text" id="name" name="name" value={customCar.name} onChange={handleChange} required />
+    <div className={`${styles.formDiv}`}>
+      <form className={`row g-3 ${styles.form}`} onSubmit={handleSubmit}>
+        <h1>Create Car Customization</h1>
+        <div className="col-md-4">
+          <label htmlFor="exterior" className="form-label">Exterior</label>
+          <input
+            className="form-control"
+            type="color"
+            id="exterior"
+            name="exterior"
+            value={customCar.exterior}
+            onChange={handleColorChange}
+            list="color-options"
+          />
+        </div>
 
-        <label htmlFor="isconvertible">Convertible:</label>
-        <input
-          type="checkbox"
-          id="isconvertible"
-          name="isconvertible"
-          checked={customCar.isconvertible}
-          onChange={handleCheckboxChange}
-        />
-        <br />
+        <div className="col-md-4">
+          <label htmlFor="interior" className="form-label">Interior</label>
+          <input
+            className="form-control"
+            type="color"
+            id="interior"
+            name="interior"
+            value={customCar.interior}
+            onChange={handleColorChange}
+            list="color-options"
+          />
+        </div>
 
-        <label htmlFor="color">Exterior Color:</label>
-        <select
-          id="color"
-          name="color"
-          value={customCar.color}
-          onChange={handleChange}
-        >
-          <option value="">Select a color</option>
-          <option value="Red">Red</option>
-          <option value="Blue">Blue</option>
-          <option value="Black">Black</option>
-          <option value="White">White</option>
-        </select>
+        <div className="col-md-4">
+          <label htmlFor="roof" className="form-label">Roof</label>
+          <input
+            className="form-control"
+            type="color"
+            id="roof"
+            name="roof"
+            value={customCar.roof}
+            onChange={handleColorChange}
+            list="color-options"
+          />
+        </div>
 
-        <label htmlFor="interior">Interior:</label>
-        <select
-          id="interior"
-          name="interior"
-          value={customCar.interior}
-          onChange={handleChange}
-        >
-          <option value="">Select interior</option>
-          <option value="Leather">Leather</option>
-          <option value="Fabric">Fabric</option>
-          <option value="Synthetic">Synthetic</option>
-        </select>
+        <div className="col-md-6">
+          <label htmlFor="wheels">Wheels</label>
+          <select
+            id="wheels"
+            name="wheels"
+            value={customCar.wheels}
+            onChange={handleChange}
+            className="form-select"
+          >
+            <option value="">Select wheels</option>
+            <option value="17-inch Alloy">17-inch Alloy</option>
+            <option value="18-inch Sport">18-inch Sport</option>
+            <option value="19-inch Premium">19-inch Premium</option>
+          </select>
+        </div>
 
-        <label htmlFor="roof">Roof Color:</label>
-        <select
-          id="roof"
-          name="roof"
-          value={customCar.roof}
-          onChange={handleChange}
-        >
-          <option value="">Select roof color</option>
-          <option value="Black">Black</option>
-          <option value="Body Color">Body Color</option>
-        </select>
+        <div className="col-md-6">
+          <label htmlFor="convertible" className="form-label">Convertible</label>
+          <select
+            id="convertible"
+            name="convertible"
+            value={customCar.convertible}
+            onChange={handleChange}
+            className="form-select"
+          >
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
 
-        <label htmlFor="wheels">Wheels:</label>
-        <select
-          id="wheels"
-          name="wheels"
-          value={customCar.wheels}
-          onChange={handleChange}
-        >
-          <option value="">Select wheels</option>
-          <option value="17-inch Alloy">17-inch Alloy</option>
-          <option value="18-inch Sport">18-inch Sport</option>
-          <option value="19-inch Premium">19-inch Premium</option>
-        </select>
+        <div className={`col-12 ${styles.buttonRow}`}>
+          <button type="submit" className="btn btn-primary">Create Custom</button>
+        </div>
 
-        <label htmlFor="price">Total Price:</label>
-        <input
-          type="number"
-          id="price"
-          name="price"
-          value={customCar.price}
-          onChange={handleChange}
-        />
-
-        <button type="submit">Create Custom Car</button>
+        <div className="col-12">
+          <h3>Total Price: ${customCar.price}</h3>
+        </div>
       </form>
     </div>
   );

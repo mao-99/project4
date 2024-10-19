@@ -10,6 +10,7 @@ import './App.css'
 
 const App = () => {
   const [cars, setCars] = useState([])
+  const [customs, setCustoms] = useState([])
 
   useEffect(()=>{
     async function start() {
@@ -17,6 +18,9 @@ const App = () => {
       const results = await response.json()
       console.log(results)
       setCars(results)
+      let response2 = await fetch('http://localhost:3001/api/customcars');
+      const results2 = await response2.json();
+      setCustoms(results2)
     }
     start();
   }, [])
@@ -28,7 +32,7 @@ const App = () => {
     },
     {
       path:'/customcars',
-      element: <ViewCars title='BOLT BUCKET | Custom Cars' />
+      element: <ViewCars title='BOLT BUCKET | Custom Cars' customs={customs}/>
     },
     {
       path: '/customcars/:id',

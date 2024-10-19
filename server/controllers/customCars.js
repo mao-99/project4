@@ -1,5 +1,16 @@
 import { pool } from "../config/database.js";
 
+const getCustoms = async (req, res) => {
+    try {
+        const response = await pool.query('SELECT * FROM customcars');
+        res.status(200).json(response.rows)
+    }
+    catch (error) {
+        console.log("There was an error getting all cars from cars table")
+        console.error(error)
+    }
+}
+
 const createCustom = async (req, res) => {
     try {
       // Destructure the request body to get all necessary fields
@@ -64,4 +75,4 @@ const deleteCustom = async (req, res) => {
 
 
 
-export {createCustom, getCustom, deleteCustom}
+export {createCustom, getCustom, deleteCustom, getCustoms}
